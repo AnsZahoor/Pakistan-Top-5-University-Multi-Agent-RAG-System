@@ -91,7 +91,12 @@ def chat():
 
 if __name__ == "__main__":
     ensure_vectorstore_populated()
-    orchestrator = Orchestrator()
+    try:
+        orchestrator = Orchestrator()
+        print("[Startup] Orchestrator initialized with Gemini.")
+    except Exception as e:
+        print(f"[Startup ERROR] Failed to initialize Orchestrator: {e}")
+        raise
     # Avoid starting the scheduler twice when Flask debug reloader is active.
     if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
         start_scheduler()

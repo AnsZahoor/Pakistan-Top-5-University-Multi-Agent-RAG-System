@@ -1,61 +1,43 @@
-"""University-specific agent that answers using retrieved RAG context."""
-
-import logging
 import os
 
-from anthropic import Anthropic
+import google.generativeai as genai
 from dotenv import load_dotenv
 
-from agents.prompts import UNIVERSITY_PROMPTS
-from rag.scraper import get_university_domain
+from agents.prompts import PROMPTS
 
 load_dotenv()
-logger = logging.getLogger(__name__)
 
-MODEL = "claude-sonnet-4-6"
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 
 class UniversityAgent:
     def __init__(self, university_name: str):
-        if university_name not in UNIVERSITY_PROMPTS:
-            raise ValueError(f"Unknown university: {university_name}")
         self.university_name = university_name
-        self.system_prompt = UNIVERSITY_PROMPTS[university_name]
-        self.domain = get_university_domain(university_name)
-
-        api_key = os.getenv("ANTHROPIC_API_KEY")
-        if not api_key or api_key == "your_key_here":
-            raise ValueError("ANTHROPIC_API_KEY is not set in .env")
-        self.client = Anthropic(api_key=api_key)
+        self.system_prompt = PROMPTS.get(university_name, PROMPTS["DEFAULT"])
 
     def answer(self, question: str, retrieved_context: str) -> str:
-        if not retrieved_context.strip():
-            return (
-                f"I don't have that information right now — please visit "
-                f"{self.domain} or contact admissions.\n"
-                f"Source: {self.domain}"
-            )
-
-        user_message = (
-            f"Student question: {question}\n\n"
-            f"Retrieved context from {self.university_name} website:\n"
-            f"{retrieved_context}\n\n"
-            "Answer the question using only the context above. "
-            "Include a Source line at the end citing the most relevant URL from the context."
+        model = genai.GenerativeModel(
+            model_name="gemini-1.5-flash",
+            system_instruction=self.system_prompt,
         )
 
+        if retrieved_context.strip():
+            prompt = f"""Use the following context to answer the student's question.
+Always cite the source URL at the end if available in the context.
+
+Context:
+{retrieved_context}
+
+Student Question: {question}"""
+        else:
+            prompt = f"""A student asked: {question}
+No context was retrieved from the database. Politely tell them you don't have that specific information and direct them to the official website."""
+
         try:
-            response = self.client.messages.create(
-                model=MODEL,
-                max_tokens=800,
-                system=self.system_prompt,
-                messages=[{"role": "user", "content": user_message}],
-            )
-            return response.content[0].text.strip()
-        except Exception as exc:
-            logger.error("%s agent failed: %s", self.university_name, exc)
+            response = model.generate_content(prompt)
+            return response.text.strip()
+        except Exception as e:
             return (
-                "Sorry, I'm having trouble reaching the AI service right now. "
-                f"Please try again later or visit {self.domain} directly.\n"
-                f"Source: {self.domain}"
+                "Sorry, I encountered an error while generating a response. "
+                f"Please try again. (Error: {str(e)})"
             )

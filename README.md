@@ -1,6 +1,6 @@
-# Pakistan Top-5 University Multi-Agent RAG System
+# Pakistan Top-5 University Multi-Agent RAG SystemPakistan Top-5 University Multi-Agent RAG System
 
-A multi-agent Retrieval-Augmented Generation (RAG) system that helps Pakistani students get accurate, up-to-date answers about **LUMS**, **NUST**, **PU**, **FAST-NU**, and **AKU** — powered by Claude and scraped data from each university's official website.
+A multi-agent Retrieval-Augmented Generation (RAG) system that helps Pakistani students get accurate, up-to-date answers about **LUMS**, **NUST**, **PU**, **FAST-NU**, and **AKU** — powered by Google Gemini and scraped data from each university's official website.
 
 ## Architecture
 
@@ -15,13 +15,13 @@ University Agent (one per university)
      ↓
 ChromaDB RAG Retrieval
      ↓
-Claude API (grounded answer)
+Gemini API (grounded answer)
 ```
 
 ## Tech Stack
 
 - **Backend:** Python, Flask
-- **LLM:** Anthropic Claude (`claude-sonnet-4-6`)
+- **LLM:** Google Gemini (`gemini-1.5-flash`, free tier)
 - **Vector Store:** ChromaDB + `sentence-transformers` (`all-MiniLM-L6-v2`)
 - **Scraping:** BeautifulSoup4 + Requests
 - **Scheduler:** APScheduler (24-hour auto-refresh)
@@ -31,7 +31,7 @@ Claude API (grounded answer)
 ### 1. Prerequisites
 
 - Python 3.11+
-- Anthropic API key
+- Free Gemini API key from [Google AI Studio](https://aistudio.google.com/apikey)
 
 ### 2. Install dependencies
 
@@ -60,7 +60,7 @@ copy .env.example .env   # Windows
 Edit `.env`:
 
 ```
-ANTHROPIC_API_KEY=your_actual_key_here
+GEMINI_API_KEY=your_gemini_key_here
 ```
 
 ### 4. Seed the vector database (recommended first run)
@@ -75,6 +75,14 @@ This scrapes all 5 university websites and populates ChromaDB. Expect a few minu
 
 ```bash
 python app.py
+```
+
+Expected startup output:
+
+```
+[Startup] Orchestrator initialized with Gemini.
+INFO: Vector store loaded with X documents
+ * Running on http://127.0.0.1:5000
 ```
 
 Open [http://127.0.0.1:5000](http://127.0.0.1:5000) in your browser.
@@ -101,7 +109,7 @@ pakistan_uni_agent/
 ├── requirements.txt
 ├── agents/
 │   ├── orchestrator.py       # Query routing
-│   ├── university_agent.py   # Per-university Claude agent
+│   ├── university_agent.py   # Per-university Gemini agent
 │   └── prompts.py            # System prompts
 ├── rag/
 │   ├── scraper.py            # Website scraper
@@ -128,14 +136,15 @@ pakistan_uni_agent/
 ## Troubleshooting
 
 
-| Issue                          | Fix                                                                        |
-| ------------------------------ | -------------------------------------------------------------------------- |
-| `ANTHROPIC_API_KEY is not set` | Add your key to `.env`                                                     |
-| Empty or weak answers          | Run `python seed.py` to refresh scraped data                               |
-| Scraper warnings               | Some university pages may be unavailable; the system skips them gracefully |
-| Slow first startup             | Initial scrape + embedding download takes time on first run                |
+| Issue                       | Fix                                                                        |
+| --------------------------- | -------------------------------------------------------------------------- |
+| `GEMINI_API_KEY is not set` | Add your key to `.env`                                                     |
+| Empty or weak answers       | Run `python seed.py` to refresh scraped data                               |
+| Scraper warnings            | Some university pages may be unavailable; the system skips them gracefully |
+| Slow first startup          | Initial scrape + embedding download takes time on first run                |
 
 
 ## License
 
 Built for Pakistani students — accurate, fast, helpful.
+
