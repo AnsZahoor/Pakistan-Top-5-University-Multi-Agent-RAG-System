@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pakistan University Assistant</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <h1>Pakistan University Assistant 🎓</h1>
+      <p class="subtitle">Ask anything about LUMS, NUST, PU, FAST-NU, or AKU</p>
+      <div class="badges">
+        <span class="badge">LUMS</span>
+        <span class="badge">NUST</span>
+        <span class="badge">PU</span>
+        <span class="badge">FAST-NU</span>
+        <span class="badge">AKU</span>
+      </div>
+    </header>
+
+    <main class="chat-container">
+      <div id="chat-window" class="chat-window">
+        <div class="message bot">
+          <div class="bubble">
+            Assalam-o-Alaikum! I can help you with admissions, programs, fees, and contact info
+            for Pakistan's top universities. What would you like to know?
+          </div>
+        </div>
+      </div>
+
+      <div id="typing-indicator" class="typing-indicator hidden">
+        <span></span><span></span><span></span>
+        <p>Thinking...</p>
+      </div>
+
+      <form id="chat-form" class="chat-form">
+        <input
+          type="text"
+          id="message-input"
+          placeholder="e.g. What are LUMS admission requirements?"
+          autocomplete="off"
+          required
+        />
+        <button type="submit" id="send-btn">Send</button>
+      </form>
+    </main>
+  </div>
+
+  <script>
+    const chatWindow = document.getElementById("chat-window");
+    const chatForm = document.getElementById("chat-form");
+    const messageInput = document.getElementById("message-input");
+    const sendBtn = document.getElementById("send-btn");
+    const typingIndicator = document.getElementById("typing-indicator");
+
+    function appendMessage(text, sender) {
+      const wrapper = document.createElement("div");
+      wrapper.className = `message ${sender}`;
+
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+      bubble.innerHTML = formatMessage(text);
+
+      wrapper.appendChild(bubble);
+      chatWindow.appendChild(wrapper);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    function formatMessage(text) {
+      return text
+        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+        .replace(/\n/g, "<br>");
+    }
+
+    function setLoading(isLoading) {
+      typingIndicator.classList.toggle("hidden", !isLoading);
+      sendBtn.disabled = isLoading;
+      messageInput.disabled = isLoading;
+    }
+
+    chatForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const message = messageInput.value.trim();
+      if (!message) return;
+
+      appendMessage(message, "user");
+      messageInput.value = "";
+      setLoading(true);
+
+      try {
+        const response = await fetch("/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message }),
+        });
+
+        const data = await response.json();
+        appendMessage(data.response || "No response received.", "bot");
+      } catch (error) {
+        appendMessage(
+          "Sorry, I could not reach the server. Please check your connection and try again.",
+          "bot"
+        );
+      } finally {
+        setLoading(false);
+        messageInput.focus();
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+flask
+anthropic
+chromadb
+sentence-transformers
+beautifulsoup4
+requests
+apscheduler
+python-dotenv
+langchain
+langchain-anthropic
+langchain-community
