@@ -21,7 +21,7 @@ Gemini API (grounded answer)
 ## Tech Stack
 
 - **Backend:** Python, Flask
-- **LLM:** Google Gemini (`gemini-1.5-flash`, free tier)
+- **LLM:** Google Gemini (`gemini-1.5-flash-8b`, free tier)
 - **Vector Store:** ChromaDB + `sentence-transformers` (`all-MiniLM-L6-v2`)
 - **Scraping:** BeautifulSoup4 + Requests
 - **Scheduler:** APScheduler (24-hour auto-refresh)

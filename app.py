@@ -2,6 +2,7 @@
 
 import logging
 import os
+import time
 
 from dotenv import load_dotenv
 from flask import Flask, jsonify, render_template, request
@@ -39,7 +40,7 @@ def ensure_vectorstore_populated():
 
 def handle_query(user_question: str) -> str:
     routing = orchestrator.classify(user_question)
-    university = routing["university"]
+    university = routing.get("university", "all")
 
     if university == "all":
         universities_to_query = ALL_UNIVERSITIES
@@ -47,18 +48,18 @@ def handle_query(user_question: str) -> str:
         universities_to_query = [university]
 
     responses = []
-    for uni in universities_to_query:
-        context_chunks = query(vectorstore, user_question, university=uni, top_k=5)
-        context_text = "\n\n".join(
-            f"[{chunk.get('page_type', 'page')}] {chunk['text']}\nURL: {chunk.get('url', '')}"
-            for chunk in context_chunks
-        )
+    for i, uni in enumerate(universities_to_query):
+        if i > 0:
+            time.sleep(5)
+
+        context_chunks = query(vectorstore, user_question, university=uni, top_k=3)
+        context_text = "\n\n".join([c["text"] for c in context_chunks])
 
         agent = UniversityAgent(uni)
         answer = agent.answer(user_question, context_text)
         responses.append(f"**{uni}:**\n{answer}")
 
-    return "\n\n".join(responses)
+    return "\n\n---\n\n".join(responses)
 
 
 @app.route("/")
