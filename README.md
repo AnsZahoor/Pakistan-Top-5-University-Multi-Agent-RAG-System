@@ -1,4 +1,4 @@
-# Pakistan Top-5 University Multi-Agent RAG SystemPakistan Top-5 University Multi-Agent RAG System
+# Top-5 University Multi-Agent RAG System
 
 A multi-agent Retrieval-Augmented Generation (RAG) system that helps Pakistani students get accurate, up-to-date answers about **LUMS**, **NUST**, **PU**, **FAST-NU**, and **AKU** — powered by Google Gemini and scraped data from each university's official website.
 
